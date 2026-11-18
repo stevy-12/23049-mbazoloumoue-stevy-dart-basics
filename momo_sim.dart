@@ -4,82 +4,83 @@ const String regNo = '23049';
 final int d = int.parse(regNo[regNo.length - 1]);
 final int t = int.parse(regNo.substring(regNo.length - 2));
 
-int momoFee(int amount) {
-  // by SM
-  if (amount <= 0) return -1;
-  if (amount <= 1000) return 20;
-  if (amount <= 10000) return 100;
-  if (amount <= 150000) return 250;
+int momoFee(int value) {
+  if (value <= 0) return -1;
+  if (value <= 1000) return 20;
+  if (value <= 10000) return 100;
+  if (value <= 150000) return 250;
   return 1500;
 }
 
-String formatRwf(int amount) {
-  // by SM
-  bool negative = amount < 0;
-  String digits = (negative ? -amount : amount).toString();
-  String result = '';
-  int count = 0;
-  int i = digits.length - 1;
-  while (i >= 0) {
-    if (count > 0 && count % 3 == 0) result = ',$result';
-    result = digits[i] + result;
-    count++;
-    i--;
+String formatRwf(int val) {
+  var isNeg = val < 0;
+  var rawDigits = (isNeg ? -val : val).toString();
+  var outStr = '';
+  var groupCounter = 0;
+  var idx = rawDigits.length - 1;
+
+  while (idx >= 0) {
+    if (groupCounter > 0 && groupCounter % 3 == 0) {
+      outStr = ',$outStr';
+    }
+    outStr = rawDigits[idx] + outStr;
+    groupCounter++;
+    idx--;
   }
-  return '${negative ? '-' : ''}$result RWF';
+  return '${isNeg ? '-' : ''}$outStr RWF';
 }
 
-bool isValidPin(String pin) {
-  // by SM
-  if (pin.length != 5) return false;
-  bool allSame = true;
-  int i = 0;
-  while (i < pin.length) {
-    int code = pin.codeUnitAt(i);
-    if (code < 48 || code > 57) return false; // not a digit 0-9
-    if (pin[i] != pin[0]) allSame = false;
-    i++;
+bool isValidPin(String secretPin) {
+  if (secretPin.length != 5) return false;
+  
+  var identicalDigits = true;
+  var pos = 0;
+  
+  while (pos < secretPin.length) {
+    var charCode = secretPin.codeUnitAt(pos);
+    if (charCode < 48 || charCode > 57) return false; // check digits 0-9
+    if (secretPin[pos] != secretPin[0]) {
+      identicalDigits = false;
+    }
+    pos++;
   }
-  if (pin == '12345') return false;
-  if (allSame) return false;
+
+  if (secretPin == '12345') return false;
+  if (identicalDigits) return false;
+  
   return true;
 }
 
-int sendMoney(int balance, int amount) {
-  // by SM
-  int fee = momoFee(amount);
-  if (fee == -1) {
+int sendMoney(int currentBal, int transferAmt) {
+  var tax = momoFee(transferAmt);
+  if (tax == -1) {
     print('Failed: invalid amount');
-    return balance;
+    return currentBal;
   }
-  if (amount + fee > balance) {
+  if (transferAmt + tax > currentBal) {
     print('Failed: insufficient balance');
-    return balance;
+    return currentBal;
   }
-  int newBalance = balance - amount - fee;
-  print('Sent ${formatRwf(amount)} (fee ${formatRwf(fee)}). '
-      'New balance: ${formatRwf(newBalance)}');
-  return newBalance;
+  var updatedBal = currentBal - transferAmt - tax;
+  print('Sent ${formatRwf(transferAmt)} (fee ${formatRwf(tax)}). New balance: ${formatRwf(updatedBal)}');
+  return updatedBal;
 }
 
-int buyAirtime(int balance, int amount) {
-  // by SM
-  if (amount < 100 || amount > 50000) {
+int buyAirtime(int currentBal, int creditAmt) {
+  if (creditAmt < 100 || creditAmt > 50000) {
     print('Failed: airtime must be between 100 and 50,000 RWF');
-    return balance;
+    return currentBal;
   }
-  if (amount > balance) {
+  if (creditAmt > currentBal) {
     print('Failed: insufficient balance');
-    return balance;
+    return currentBal;
   }
-  int newBalance = balance - amount;
-  print('Airtime bought: ${formatRwf(amount)}. '
-      'New balance: ${formatRwf(newBalance)}');
-  return newBalance;
+  var updatedBal = currentBal - creditAmt;
+  print('Airtime bought: ${formatRwf(creditAmt)}. New balance: ${formatRwf(updatedBal)}');
+  return updatedBal;
 }
 
 void main() {
-  // by SM
   print('Reg no: $regNo | D = $d | T = $t');
 
   print(isValidPin('12345'));
@@ -88,24 +89,26 @@ void main() {
   print(isValidPin('48a21'));
   print(isValidPin('4821$d'));
 
-  int balance = 20000 + t * 500;
-  print('Starting balance: ${formatRwf(balance)}');
+  var accountBalance = 20000 + t * 500;
+  print('Starting balance: ${formatRwf(accountBalance)}');
 
-  int i = 0;
-  while (i < 3) {
-    balance = sendMoney(balance, (d + 1) * 3000);
-    i++;
+  var step = 0;
+  while (step < 3) {
+    accountBalance = sendMoney(accountBalance, (d + 1) * 3000);
+    step++;
   }
-  balance = buyAirtime(balance, 1000);
-  balance = sendMoney(balance, 0);
-  balance = sendMoney(balance, 200000);
-  print('Final balance: ${formatRwf(balance)}');
+  
+  accountBalance = buyAirtime(accountBalance, 1000);
+  accountBalance = sendMoney(accountBalance, 0);
+  accountBalance = sendMoney(accountBalance, 200000);
+  
+  print('Final balance: ${formatRwf(accountBalance)}');
 
-  // My own tests (expected output in the comment)
-  print(formatRwf(0)); // 0 RWF
-  print(formatRwf(100000)); // 100,000 RWF  <- risky: leading comma?
-  print(formatRwf(-1000)); // -1,000 RWF  <- risky: negative, multiple of 3 digits
-  print(isValidPin('00000')); // false (same digit five times)
-  print(isValidPin('01234')); // true (leading zero allowed)
-  print(isValidPin('')); // false (empty string)
+  // Custom tests checks
+  print(formatRwf(0));          // 0 RWF
+  print(formatRwf(100000));     // 100,000 RWF
+  print(formatRwf(-1000));      // -1,000 RWF
+  print(isValidPin('00000'));   // false
+  print(isValidPin('01234'));   // true
+  print(isValidPin(''));        // false
 }
