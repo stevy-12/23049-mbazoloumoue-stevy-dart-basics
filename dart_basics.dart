@@ -4,64 +4,62 @@ const String regNo = '23049';
 final int d = int.parse(regNo[regNo.length - 1]);
 final int t = int.parse(regNo.substring(regNo.length - 2));
 
-int countVowels(String text) {
-  // by SM
-  String lower = text.toLowerCase(); // this line makes capital letters count
-  int count = 0;
-  for (int i = 0; i < lower.length; i++) {
-    if ('aeiou'.contains(lower[i])) count++;
-  }
-  return count;
-}
-
-String initials(String fullName) {
-  // by SM
-  String result = '';
-  for (final part in fullName.trim().split(' ')) {
-    if (part.isNotEmpty) result += '${part[0].toUpperCase()}.';
-  }
-  return result;
-}
-
-void drawTriangle(int height) {
-  // by SM
-  for (int row = 1; row <= height; row++) {
-    String symbol = row.isOdd ? '*' : '#';
-    print(' ' * (height - row) + symbol * row);
-  }
-}
-
-int momoFee(int amount) {
-  // by SM
-  if (amount <= 0) return -1;
-  if (amount <= 1000) return 20;
-  if (amount <= 10000) return 100;
-  if (amount <= 150000) return 250;
+int momoFee(int mnt) {
+  if (mnt <= 0) return -1;
+  if (mnt <= 1000) return 20;
+  if (mnt <= 10000) return 100;
+  if (mnt <= 150000) return 250;
   return 1500;
 }
 
-String maskPhone(String phone) {
-  // by SM
-  if (phone.length != 10) return 'INVALID';
-  String stars = '';
-  int i = 3;
-  while (i < phone.length - 2) {
-    stars += '*';
-    i++;
+String maskPhone(String tel) {
+  if (tel.length != 10) return 'INVALID';
+  var hidden = '';
+  var idx = 3;
+  while (idx < tel.length - 2) {
+    hidden += '*';
+    idx++;
   }
-  return phone.substring(0, 3) + stars + phone.substring(phone.length - 2);
+  return tel.substring(0, 3) + hidden + tel.substring(tel.length - 2);
+}
+
+int countVowels(String str) {
+  var s = str.toLowerCase();
+  var tally = 0;
+  for (var k = 0; k < s.length; k++) {
+    if ('aeiou'.contains(s[k])) {
+      tally++;
+    }
+  }
+  return tally;
+}
+
+String initials(String fullname) {
+  var res = '';
+  for (var chunk in fullname.trim().split(' ')) {
+    if (chunk.isNotEmpty) {
+      res += '${chunk[0].toUpperCase()}.';
+    }
+  }
+  return res;
+}
+
+void drawTriangle(int h) {
+  for (var r = 1; r <= h; r++) {
+    var char = (r % 2 != 0) ? '*' : '#';
+    print('${' ' * (h - r)}${char * r}');
+  }
 }
 
 void main() {
-  // by SM
   print('Reg no: $regNo | D = $d | T = $t');
 
   // B2
-  const name = 'Stevy MBAZOLOUMOUE';
-  print('$name has ${countVowels(name)} vowels');
+  const studentName = 'Stevy MBAZOLOUMOUE';
+  print('$studentName has ${countVowels(studentName)} vowels');
 
   // B3
-  print(initials(name));
+  print(initials(studentName));
   print(initials(' ana uwase '));
   print(initials(' '));
 
@@ -71,15 +69,16 @@ void main() {
   drawTriangle(-2);
 
   // D2
-  const phone = '0788123456';
-  int i = 1;
-  int totalFees = 0;
-  while (i <= d + 3) {
-    int amount = i * 4000 + t * 100;
-    int fee = momoFee(amount);
-    print('Receipt $i | $amount RWF | fee $fee RWF | to ${maskPhone(phone)}');
-    totalFees += fee;
-    i++;
+  const pNumber = '0788123456';
+  var counter = 1;
+  var sumFees = 0;
+  
+  while (counter <= d + 3) {
+    var computedAmount = counter * 4000 + t * 100;
+    var computedFee = momoFee(computedAmount);
+    print('Receipt $counter | $computedAmount RWF | fee $computedFee RWF | to ${maskPhone(pNumber)}');
+    sumFees += computedFee;
+    counter++;
   }
-  print('Total fees: $totalFees RWF');
+  print('Total fees: $sumFees RWF');
 }
